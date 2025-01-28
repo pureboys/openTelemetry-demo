@@ -135,9 +135,9 @@ func ping(c *gin.Context) {
 	ctx := c.Request.Context()
 	util.SugaredLoggers.Infow(ctx, "demo", "message", "hello world")
 
-	rand.Seed(time.Now().UnixNano())
-	intn := rand.Intn(2000) + 1000
-	time.Sleep(time.Millisecond * time.Duration(intn))
+	rng := rand.New(rand.NewSource(time.Now().UnixNano()))
+	randIntN := rng.Intn(2000) + 1000
+	time.Sleep(time.Millisecond * time.Duration(randIntN))
 
 	c.JSON(http.StatusOK, gin.H{
 		"data": "ok",
