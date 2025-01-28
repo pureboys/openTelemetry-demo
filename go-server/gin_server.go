@@ -7,6 +7,7 @@ import (
 	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"io"
+	"math/rand"
 	"net/http"
 	"sync"
 	"time"
@@ -25,6 +26,13 @@ func main() {
 		panic(err)
 	}
 	util.Logger(loggerProvider)
+	defer loggerProvider.Shutdown(context.Background())
+
+	metricProvider, err := util.InitMetric()
+	if err != nil {
+		panic(err)
+	}
+	defer metricProvider.Shutdown(context.Background())
 
 	util.DBInit()
 	util.RedInit()
@@ -32,6 +40,7 @@ func main() {
 	r := gin.Default()
 	// 添加 OpenTelemetry 中间件
 	r.Use(otelgin.Middleware(util.ServiceName))
+	r.Use(util.MetricMiddle(util.ServiceName))
 	router(r)
 	_ = r.Run(util.ServerPort)
 }
@@ -125,6 +134,10 @@ func getDB(c *gin.Context) {
 func ping(c *gin.Context) {
 	ctx := c.Request.Context()
 	util.SugaredLoggers.Infow(ctx, "demo", "message", "hello world")
+
+	rand.Seed(time.Now().UnixNano())
+	intn := rand.Intn(2000) + 1000
+	time.Sleep(time.Millisecond * time.Duration(intn))
 
 	c.JSON(http.StatusOK, gin.H{
 		"data": "ok",
