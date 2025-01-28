@@ -1,7 +1,14 @@
 fastapi
 uvicorn
+sqlalchemy
+PyMySQL
+redis
+aiohttp
 opentelemetry-api==1.28.2
 opentelemetry-sdk==1.28.2
 opentelemetry-instrumentation-fastapi==0.49b2
 opentelemetry-instrumentation-logging==0.49b2
+opentelemetry-instrumentation-sqlalchemy==0.49b2
+opentelemetry.instrumentation.aiohttp_client==0.49b2
+opentelemetry-instrumentation-redis==0.49b2
 opentelemetry-exporter-otlp==1.28.2
