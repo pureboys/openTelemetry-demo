@@ -27,7 +27,7 @@ func MetricMiddle(service string, _ ...Option) gin.HandlerFunc {
 
 	histogram, _ := meter.Float64Histogram(
 		"http.server.request.duration",
-		metric.WithDescription("Duration of HTTP server requests."),
+		metric.WithDescription("The duration of the HTTP server request."),
 		metric.WithUnit("ms"),
 	)
 
