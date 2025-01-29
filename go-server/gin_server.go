@@ -55,6 +55,8 @@ func router(r *gin.Engine) {
 func getHttp(c *gin.Context) {
 	reqUrl := "http://127.0.0.1:5000/"
 	ctx := c.Request.Context()
+	// 记录日志
+	util.SugaredLoggers.Infow(ctx, "getHttp")
 	var wg sync.WaitGroup
 	wg.Add(2)
 	go func() {
@@ -89,6 +91,8 @@ func doRequest(ctx context.Context, url string) []byte {
 
 func getRedis(c *gin.Context) {
 	ctx := c.Request.Context()
+	// 记录日志
+	util.SugaredLoggers.Infow(ctx, "getRedis")
 	var wg sync.WaitGroup
 	wg.Add(2)
 	go func() {
@@ -108,8 +112,9 @@ func getRedis(c *gin.Context) {
 func getDB(c *gin.Context) {
 	var result1 []map[string]interface{}
 	var result2 []map[string]interface{}
-
 	ctx := c.Request.Context()
+	// 记录日志
+	util.SugaredLoggers.Infow(ctx, "getDB")
 	var wg sync.WaitGroup
 	wg.Add(2)
 	go func() {
@@ -133,7 +138,7 @@ func getDB(c *gin.Context) {
 
 func ping(c *gin.Context) {
 	ctx := c.Request.Context()
-	util.SugaredLoggers.Infow(ctx, "demo", "message", "hello world")
+	util.SugaredLoggers.Infow(ctx, "ping", "message", "hello world")
 
 	rng := rand.New(rand.NewSource(time.Now().UnixNano()))
 	randIntN := rng.Intn(2000) + 1000

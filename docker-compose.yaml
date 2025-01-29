@@ -12,24 +12,32 @@ services:
       - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml
     command: --config /etc/otel-collector-config.yaml
     depends_on:
-      - jaeger
       - prometheus
       - loki
+      - tempo
+#      - jaeger
 
   # Jaeger
-  jaeger:
-    image: jaegertracing/all-in-one:1.65.0
-    container_name: jaeger
-    ports:
-      - "16686:16686"  # Jaeger UI
-      - "14250:14250"  # Jaeger gRPC
-    # environment:
-    #   - SPAN_STORAGE_TYPE=badger
-    #   - BADGER_EPHEMERAL=false
-    #   - BADGER_DIRECTORY_VALUE=/badger/data
-    #   - BADGER_DIRECTORY_KEY=/badger/key
+#  jaeger:
+#    image: jaegertracing/all-in-one:1.65.0
+#    container_name: jaeger
+#    ports:
+#      - "16686:16686"  # Jaeger UI
+#      - "14250:14250"  # Jaeger gRPC
+#    # environment:
+#    #   - SPAN_STORAGE_TYPE=badger
+#    #   - BADGER_EPHEMERAL=false
+#    #   - BADGER_DIRECTORY_VALUE=/badger/data
+#    #   - BADGER_DIRECTORY_KEY=/badger/key
+#    volumes:
+#      - jaeger-data:/badger
+
+  tempo:
+    image: grafana/tempo:2.6.0
+    container_name: tempo
+    command: [ "-config.file=/etc/tempo-config.yaml" ]
     volumes:
-      - jaeger-data:/badger
+      - ./tempo-config.yaml:/etc/tempo-config.yaml
 
   # Prometheus
   prometheus:
@@ -48,8 +56,8 @@ services:
     container_name: loki
     ports:
       - "3100:3100"  # Loki API
-    # volumes:
-    #   - ./loki-config.yaml:/etc/loki/local-config.yaml
+    volumes:
+      - ./loki-config.yaml:/etc/loki/local-config.yaml
     command: -config.file=/etc/loki/local-config.yaml
 
   # Grafana
@@ -65,7 +73,8 @@ services:
     depends_on:
       - prometheus
       - loki
-      - jaeger
+      - tempo
+#      - jaeger
 
   mysql:
     image: mysql:8.0.34
@@ -110,5 +119,5 @@ services:
 
 
 volumes:
-  jaeger-data:
+#  jaeger-data:
   grafana-storage:

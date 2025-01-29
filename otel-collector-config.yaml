@@ -11,12 +11,20 @@ exporters:
     verbosity: detailed
   prometheus:
     endpoint: "0.0.0.0:9090"
-  otlp/jaeger:
-    endpoint: "jaeger:4317"
+#  otlp/jaeger:
+#    endpoint: "jaeger:4317"
+#    tls:
+#      insecure: true
+  otlp/tempo:
+    endpoint: "tempo:4317"
     tls:
       insecure: true
   loki:
     endpoint: "http://loki:3100/loki/api/v1/push"
+#  otlphttp/loki:
+#    endpoint: "http://loki:3100/otlp"
+#    tls:
+#      insecure: true
 
 processors:
   batch:
@@ -26,7 +34,8 @@ service:
     traces:
       receivers: [otlp]
       processors: [batch]
-      exporters: [otlp/jaeger]
+#      exporters: [otlp/jaeger]
+      exporters: [otlp/tempo]
     metrics:
       receivers: [otlp]
       processors: [batch]
@@ -35,3 +44,4 @@ service:
       receivers: [otlp]
       processors: [batch]
       exporters: [loki]
+#      exporters: [otlphttp/loki]

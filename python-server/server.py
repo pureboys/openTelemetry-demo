@@ -2,6 +2,7 @@ from fastapi import FastAPI, Depends
 from opentelemetry import trace
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 
+import asyncio
 import logging, aiohttp, json
 
 from sqlalchemy.orm import Session
@@ -32,6 +33,7 @@ async def read_root():
 @app.get("/get_db")
 async def get_db(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
     users = db.query(Students).offset(skip).limit(limit).all()
+    logging.info(f"get_db ...")
     return users
 
 
@@ -43,14 +45,24 @@ async def get_redis():
 
 @app.get("/do_request")
 async def do_request():
-    url = ("http://baike.baidu.com/api/openapi/BaikeLemmaCardApi?"
-           "scope=103&format=json&appid=379020&bk_key=关键字&bk_length=600")
+    logging.info(f"do_request ...")
+    urls = [
+        "http://baike.baidu.com/api/openapi/BaikeLemmaCardApi?scope=103&format=json&appid=379020&bk_key=关键字&bk_length=600",
+        "http://baike.baidu.com/api/openapi/BaikeLemmaCardApi?scope=103&format=json&appid=379020&bk_key=关键字&bk_length=600",
+        "http://baike.baidu.com/api/openapi/BaikeLemmaCardApi?scope=103&format=json&appid=379020&bk_key=关键字&bk_length=600",
+    ]
     async with aiohttp.ClientSession() as session:
-        async with session.get(url, timeout=10) as response:
-            if response.status == 200:
-                res = await response.text('utf-8')
-                return json.loads(res)
+        tasks = [fetch(session, url) for url in urls]
+        responses = await asyncio.gather(*tasks)
+        return {"data": responses}
 
+async def fetch(session, url):
+    async with session.get(url, timeout=10) as response:
+        if response.status == 200:
+            res = await response.text('utf-8')
+            return json.loads(res)
+        else:
+            return {"error": f"Failed to fetch {url}"}
 
 # 运行应用
 if __name__ == "__main__":

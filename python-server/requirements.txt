@@ -2,6 +2,7 @@ fastapi
 uvicorn
 sqlalchemy
 PyMySQL
+cryptography
 redis
 aiohttp
 opentelemetry-api==1.28.2
