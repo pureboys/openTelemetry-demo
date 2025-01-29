@@ -20,6 +20,11 @@ type Option interface {
 func MetricMiddle(service string, _ ...Option) gin.HandlerFunc {
 	var meter = otel.Meter(service)
 	apiCounter, _ := meter.Int64Counter(
+		"http.server.requests",
+		metric.WithDescription("Total Number of HTTP server requests."),
+		metric.WithUnit("{request}"),
+	)
+	apiUpDownCounter, _ := meter.Int64UpDownCounter(
 		"http.server.active_requests",
 		metric.WithDescription("Number of active HTTP server requests."),
 		metric.WithUnit("{request}"),
@@ -36,10 +41,12 @@ func MetricMiddle(service string, _ ...Option) gin.HandlerFunc {
 		attrs := metric.WithAttributes(semconv.HTTPRoute(c.FullPath()), semconv.HTTPRequestMethodKey.String(r.Method))
 
 		start := time.Now()
-		apiCounter.Add(r.Context(), 1, attrs)
+		apiUpDownCounter.Add(r.Context(), 1, attrs)
+		defer apiUpDownCounter.Add(r.Context(), -1, attrs)
 
 		c.Next()
 
+		apiCounter.Add(r.Context(), 1, attrs)
 		duration := float64(time.Since(start)) / float64(time.Millisecond)
 		histogram.Record(r.Context(), duration, attrs)
 	}

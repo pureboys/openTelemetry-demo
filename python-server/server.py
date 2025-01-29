@@ -25,10 +25,17 @@ FastAPIInstrumentor.instrument_app(app)
 # 记录请求信息
 meter = metrics.get_meter(telemetry.service_name)
 request_counter = meter.create_counter(
+    "http.server.requests",
+    description="Total Number of HTTP server requests.",
+    unit="{request}"
+)
+
+active_counter = meter.create_up_down_counter(
     "http.server.active_requests",
     description="Number of active HTTP server requests.",
     unit="{request}"
 )
+
 request_duration_histogram = meter.create_histogram(
     "http.server.request.duration",
     description="The duration of the HTTP server request.",
@@ -38,19 +45,27 @@ request_duration_histogram = meter.create_histogram(
 # 自定义中间件
 @app.middleware("http")
 async def opentelemetry_middleware(req: Request, call_next):
+    attributes = {
+        "http.route": req.url.path,
+        "http.request.method": req.method,
+    }
+    # 增加活跃请求计数器
+    active_counter.add(1, attributes)
     # 记录请求开始时间
     start_time = time()
-    # 调用下一个中间件或路由处理函数
-    response = await call_next(req)
-
-    # 计算请求持续时间
-    duration = (time() - start_time) * 1000  # 转换为毫秒
-    # 记录请求持续时间到直方图
-    request_duration_histogram.record(duration, {"http.route": req.url.path, "http.request.method": req.method})
-    # 增加请求计数器
-    request_counter.add(1, {"http.route": req.url.path, "http.request.method": req.method})
-    return response
-
+    try:
+        # 调用下一个中间件或路由处理函数
+        response = await call_next(req)
+        return response
+    finally:
+        # 计算请求持续时间
+        duration = (time() - start_time) * 1000  # 转换为毫秒
+        # 记录请求持续时间到直方图
+        request_duration_histogram.record(duration, attributes)
+        # 减少活跃请求计数器
+        active_counter.add(-1, attributes)
+        # 增加请求总数计数器
+        request_counter.add(1, attributes)
 
 # 定义一个简单的路由
 @app.get("/")
