@@ -18,7 +18,7 @@ import (
 
 func InitTracer(serviceName string) (*sdktrace.TracerProvider, error) {
 	opts := []otlptracegrpc.Option{
-		otlptracegrpc.WithEndpoint("http://127.0.0.1:4317"),
+		otlptracegrpc.WithEndpoint(TelemetryEndPont),
 		otlptracegrpc.WithInsecure(),
 	}
 	// 创建 OTLP 导出器
@@ -51,7 +51,7 @@ func InitTracer(serviceName string) (*sdktrace.TracerProvider, error) {
 
 func InitLogger(serviceName string) (*sdklog.LoggerProvider, error) {
 	opts := []otlploggrpc.Option{
-		otlploggrpc.WithEndpoint("http://127.0.0.1:4317"),
+		otlploggrpc.WithEndpoint(TelemetryEndPont),
 		otlploggrpc.WithInsecure(),
 	}
 	// 创建 OTLP 日志导出器
@@ -76,7 +76,7 @@ func InitLogger(serviceName string) (*sdklog.LoggerProvider, error) {
 
 func InitMetric(serviceName string) (*sdkmetric.MeterProvider, error) {
 	opts := []otlpmetricgrpc.Option{
-		otlpmetricgrpc.WithEndpoint("http://127.0.0.1:4317"),
+		otlpmetricgrpc.WithEndpoint(TelemetryEndPont),
 		otlpmetricgrpc.WithInsecure(),
 	}
 	metricExporter, err := otlpmetricgrpc.New(context.Background(), opts...)
