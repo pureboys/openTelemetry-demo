@@ -15,24 +15,25 @@ import (
 
 func main() {
 	// 初始化日志和追踪
-	tracerProvider, err := util.InitTracer()
+	ctx := context.Background()
+	tracerProvider, err := util.InitTracer(util.ServiceName)
 	if err != nil {
 		panic(err)
 	}
-	defer tracerProvider.Shutdown(context.Background())
+	defer tracerProvider.Shutdown(ctx)
 
-	loggerProvider, err := util.InitLogger()
+	loggerProvider, err := util.InitLogger(util.ServiceName)
 	if err != nil {
 		panic(err)
 	}
 	util.Logger(loggerProvider)
-	defer loggerProvider.Shutdown(context.Background())
+	defer loggerProvider.Shutdown(ctx)
 
-	metricProvider, err := util.InitMetric()
+	metricProvider, err := util.InitMetric(util.ServiceName)
 	if err != nil {
 		panic(err)
 	}
-	defer metricProvider.Shutdown(context.Background())
+	defer metricProvider.Shutdown(ctx)
 
 	util.DBInit()
 	util.RedInit()

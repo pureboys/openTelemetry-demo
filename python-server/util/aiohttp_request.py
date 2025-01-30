@@ -25,5 +25,6 @@ def request_hook(span, params):
         sanitized_headers = {k: v for k, v in headers.items() if k.lower() != 'authorization'}
         span.set_attribute("http.request.headers", json.dumps(sanitized_headers))
 
-# 使用 AioHttpClientInstrumentor 自动为 aiohttp 客户端添加 OpenTelemetry 支持
-AioHttpClientInstrumentor().instrument(request_hook=request_hook)
+def init_aiohttp_client():
+    # 使用 AioHttpClientInstrumentor 自动为 aiohttp 客户端添加 OpenTelemetry 支持
+    AioHttpClientInstrumentor().instrument(request_hook=request_hook)

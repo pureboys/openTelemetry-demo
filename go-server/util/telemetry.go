@@ -16,7 +16,7 @@ import (
 	"time"
 )
 
-func InitTracer() (*sdktrace.TracerProvider, error) {
+func InitTracer(serviceName string) (*sdktrace.TracerProvider, error) {
 	// 创建 OTLP 导出器
 	traceExporter, err := otlptracegrpc.New(context.Background(), otlptracegrpc.WithInsecure())
 	if err != nil {
@@ -28,7 +28,7 @@ func InitTracer() (*sdktrace.TracerProvider, error) {
 		sdktrace.WithBatcher(traceExporter),
 		sdktrace.WithResource(resource.NewWithAttributes(
 			semconv.SchemaURL,
-			semconv.ServiceNameKey.String(ServiceName),
+			semconv.ServiceNameKey.String(serviceName),
 		)),
 	)
 
@@ -44,7 +44,7 @@ func InitTracer() (*sdktrace.TracerProvider, error) {
 	return tp, nil
 }
 
-func InitLogger() (*sdklog.LoggerProvider, error) {
+func InitLogger(serviceName string) (*sdklog.LoggerProvider, error) {
 	// 创建 OTLP 日志导出器
 	logExporter, err := otlploggrpc.New(context.Background(), otlploggrpc.WithInsecure())
 	if err != nil {
@@ -52,7 +52,7 @@ func InitLogger() (*sdklog.LoggerProvider, error) {
 	}
 	mergeResource, _ := resource.Merge(resource.Default(),
 		resource.NewWithAttributes(semconv.SchemaURL,
-			semconv.ServiceName(ServiceName),
+			semconv.ServiceName(serviceName),
 			semconv.ServiceVersion(ServiceVersion),
 		))
 
@@ -65,14 +65,14 @@ func InitLogger() (*sdklog.LoggerProvider, error) {
 	return loggerProvider, nil
 }
 
-func InitMetric() (*sdkmetric.MeterProvider, error) {
+func InitMetric(serviceName string) (*sdkmetric.MeterProvider, error) {
 	metricExporter, err := otlpmetricgrpc.New(context.Background(), otlpmetricgrpc.WithInsecure())
 	if err != nil {
 		return nil, err
 	}
 	mergeResource, _ := resource.Merge(resource.Default(),
 		resource.NewWithAttributes(semconv.SchemaURL,
-			semconv.ServiceName(ServiceName),
+			semconv.ServiceName(serviceName),
 			semconv.ServiceVersion(ServiceVersion),
 		))
 	metricProvider := sdkmetric.NewMeterProvider(sdkmetric.WithResource(mergeResource), sdkmetric.WithReader(

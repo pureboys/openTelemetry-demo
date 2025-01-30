@@ -7,50 +7,36 @@ import asyncio
 import logging, aiohttp, json
 
 from sqlalchemy.orm import Session
-from util import telemetry, request
+
+import util.telemetry
+from util import telemetry, aiohttp_request
 from util.db import get_db, Students
 from util.redis_db import client
+from util.counter import Counter
 
-# 初始化日志和跟踪
-telemetry.init_trace()
-telemetry.init_log()
-telemetry.init_metric()
 
 # 创建 FastAPI 应用
 app = FastAPI()
-# 使用 FastAPIInstrumentor 自动为 FastAPI 应用添加 OpenTelemetry 支持
+
+# 启动时的初始化
+telemetry.init_trace(util.telemetry.fastapi_service_name)
+telemetry.init_log(util.telemetry.fastapi_service_name)
+telemetry.init_metric(util.telemetry.fastapi_service_name)
+aiohttp_request.init_aiohttp_client()
+# 在初始化 OpenTelemetry 提供者后进行应用程序的自动仪器化
 FastAPIInstrumentor.instrument_app(app)
 
-
-# 记录请求信息
-meter = metrics.get_meter(telemetry.service_name)
-request_counter = meter.create_counter(
-    "http.server.requests",
-    description="Total Number of HTTP server requests.",
-    unit="{request}"
-)
-
-active_counter = meter.create_up_down_counter(
-    "http.server.active_requests",
-    description="Number of active HTTP server requests.",
-    unit="{request}"
-)
-
-request_duration_histogram = meter.create_histogram(
-    "http.server.request.duration",
-    description="The duration of the HTTP server request.",
-    unit="ms"
-)
-
+# 数据统计
+util_count = Counter(service_name=util.telemetry.fastapi_service_name)
 # 自定义中间件
 @app.middleware("http")
-async def opentelemetry_middleware(req: Request, call_next):
+async def telemetry_middleware(req: Request, call_next):
     attributes = {
         "http.route": req.url.path,
         "http.request.method": req.method,
     }
     # 增加活跃请求计数器
-    active_counter.add(1, attributes)
+    util_count.request_active_counter.add(1, attributes)
     # 记录请求开始时间
     start_time = time()
     try:
@@ -61,11 +47,11 @@ async def opentelemetry_middleware(req: Request, call_next):
         # 计算请求持续时间
         duration = (time() - start_time) * 1000  # 转换为毫秒
         # 记录请求持续时间到直方图
-        request_duration_histogram.record(duration, attributes)
+        util_count.request_duration_histogram.record(duration, attributes)
         # 减少活跃请求计数器
-        active_counter.add(-1, attributes)
+        util_count.request_active_counter.add(-1, attributes)
         # 增加请求总数计数器
-        request_counter.add(1, attributes)
+        util_count.request_counter.add(1, attributes)
 
 # 定义一个简单的路由
 @app.get("/")
@@ -82,7 +68,6 @@ async def get_db(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
     users = db.query(Students).offset(skip).limit(limit).all()
     logging.info(f"get_db ...")
     return users
-
 
 @app.get("/get_redis")
 async def get_redis():
@@ -116,5 +101,4 @@ async def fetch(session, url):
 # 运行应用
 if __name__ == "__main__":
     import uvicorn
-
-    uvicorn.run(app, host="0.0.0.0", port=5000)
+    uvicorn.run('server:app', host="0.0.0.0", port=5000, workers=2, loop='uvloop')
