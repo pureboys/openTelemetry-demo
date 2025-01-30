@@ -20,7 +20,7 @@ fastapi_service_name = "fastapi-app"
 
 def init_trace(service_name):
     if trace.get_tracer_provider() is None or not isinstance(trace.get_tracer_provider(), TracerProvider):
-        otlp_exporter = OTLPSpanExporter(endpoint="http://localhost:4317", insecure=True)
+        otlp_exporter = OTLPSpanExporter(endpoint="http://127.0.0.1:4317", insecure=True)
         provider = TracerProvider(resource=Resource.create({"service.name": service_name}))
         processor = BatchSpanProcessor(otlp_exporter)
         provider.add_span_processor(processor)
@@ -32,7 +32,7 @@ def init_log(service_name):
         logging_level = logging.DEBUG
         logger_provider = LoggerProvider(resource=Resource.create({"service.name":service_name, }), )
         set_logger_provider(logger_provider)
-        exporter = OTLPLogExporter(endpoint="http://localhost:4317", insecure=True)
+        exporter = OTLPLogExporter(endpoint="http://127.0.0.1:4317", insecure=True)
         logger_provider.add_log_record_processor(BatchLogRecordProcessor(exporter))
         handler = LoggingHandler(level=logging_level, logger_provider=logger_provider)
 
@@ -42,7 +42,7 @@ def init_log(service_name):
 
 def init_metric(service_name):
     if metrics.get_meter_provider() is None or not isinstance(metrics.get_meter_provider(), MeterProvider):
-        otlp_exporter = OTLPMetricExporter(endpoint="http://localhost:4317")
+        otlp_exporter = OTLPMetricExporter(endpoint="http://127.0.0.1:4317")
         metric_reader = PeriodicExportingMetricReader(otlp_exporter, export_interval_millis=1000)
         metric_provider = MeterProvider(metric_readers=[metric_reader], resource=Resource.create({"service.name": service_name}, ))
         metrics.set_meter_provider(metric_provider)

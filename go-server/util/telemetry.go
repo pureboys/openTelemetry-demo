@@ -17,14 +17,19 @@ import (
 )
 
 func InitTracer(serviceName string) (*sdktrace.TracerProvider, error) {
+	opts := []otlptracegrpc.Option{
+		otlptracegrpc.WithEndpoint("http://127.0.0.1:4317"),
+		otlptracegrpc.WithInsecure(),
+	}
 	// 创建 OTLP 导出器
-	traceExporter, err := otlptracegrpc.New(context.Background(), otlptracegrpc.WithInsecure())
+	traceExporter, err := otlptracegrpc.New(context.Background(), opts...)
 	if err != nil {
 		return nil, err
 	}
 
 	// 创建追踪器提供者
 	tp := sdktrace.NewTracerProvider(
+		sdktrace.WithSampler(sdktrace.AlwaysSample()),
 		sdktrace.WithBatcher(traceExporter),
 		sdktrace.WithResource(resource.NewWithAttributes(
 			semconv.SchemaURL,
@@ -45,8 +50,12 @@ func InitTracer(serviceName string) (*sdktrace.TracerProvider, error) {
 }
 
 func InitLogger(serviceName string) (*sdklog.LoggerProvider, error) {
+	opts := []otlploggrpc.Option{
+		otlploggrpc.WithEndpoint("http://127.0.0.1:4317"),
+		otlploggrpc.WithInsecure(),
+	}
 	// 创建 OTLP 日志导出器
-	logExporter, err := otlploggrpc.New(context.Background(), otlploggrpc.WithInsecure())
+	logExporter, err := otlploggrpc.New(context.Background(), opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -66,7 +75,11 @@ func InitLogger(serviceName string) (*sdklog.LoggerProvider, error) {
 }
 
 func InitMetric(serviceName string) (*sdkmetric.MeterProvider, error) {
-	metricExporter, err := otlpmetricgrpc.New(context.Background(), otlpmetricgrpc.WithInsecure())
+	opts := []otlpmetricgrpc.Option{
+		otlpmetricgrpc.WithEndpoint("http://127.0.0.1:4317"),
+		otlpmetricgrpc.WithInsecure(),
+	}
+	metricExporter, err := otlpmetricgrpc.New(context.Background(), opts...)
 	if err != nil {
 		return nil, err
 	}
