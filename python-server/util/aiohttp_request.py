@@ -1,5 +1,6 @@
 import json
 from opentelemetry.instrumentation.aiohttp_client import AioHttpClientInstrumentor
+from opentelemetry.semconv.trace import SpanAttributes
 
 # 定义自定义的请求钩子函数
 def request_hook(span, params):
@@ -11,8 +12,8 @@ def request_hook(span, params):
     method = params.method
 
     # 记录请求方法和完整 URL
-    span.set_attribute("http.method", method)
-    span.set_attribute("http.url", str(url))
+    span.set_attribute(SpanAttributes.HTTP_REQUEST_METHOD, method)
+    span.set_attribute(SpanAttributes.HTTP_URL, str(url))
 
     # 记录查询参数
     query_params = dict(url.query)

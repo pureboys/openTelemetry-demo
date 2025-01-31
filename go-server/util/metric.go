@@ -4,7 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/metric"
-	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
+	semconv "go.opentelemetry.io/otel/semconv/v1.25.0"
 	"time"
 )
 
@@ -25,14 +25,14 @@ func MetricMiddle(service string, _ ...Option) gin.HandlerFunc {
 		metric.WithUnit("{request}"),
 	)
 	apiUpDownCounter, _ := meter.Int64UpDownCounter(
-		"http.server.active_requests",
-		metric.WithDescription("Number of active HTTP server requests."),
-		metric.WithUnit("{request}"),
+		semconv.HTTPServerActiveRequestsName,
+		metric.WithDescription(semconv.HTTPServerActiveRequestsDescription),
+		metric.WithUnit(semconv.HTTPServerActiveRequestsUnit),
 	)
 
 	histogram, _ := meter.Float64Histogram(
-		"http.server.request.duration",
-		metric.WithDescription("The duration of the HTTP server request."),
+		semconv.HTTPServerRequestDurationName,
+		metric.WithDescription(semconv.HTTPServerRequestDurationDescription),
 		metric.WithUnit("ms"),
 	)
 

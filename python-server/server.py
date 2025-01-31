@@ -1,6 +1,7 @@
 from fastapi import FastAPI, Depends, Request
 from opentelemetry import trace, metrics
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+from opentelemetry.semconv.trace import SpanAttributes
 
 from time import time
 import asyncio
@@ -32,8 +33,8 @@ util_count = Counter(service_name=util.telemetry.fastapi_service_name)
 @app.middleware("http")
 async def telemetry_middleware(req: Request, call_next):
     attributes = {
-        "http.route": req.url.path,
-        "http.request.method": req.method,
+        SpanAttributes.HTTP_ROUTE: req.url.path,
+        SpanAttributes.HTTP_REQUEST_METHOD: req.method,
     }
     # 增加活跃请求计数器
     util_count.request_active_counter.add(1, attributes)
