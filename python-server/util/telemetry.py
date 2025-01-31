@@ -16,7 +16,7 @@ from opentelemetry.sdk.metrics.export import ConsoleMetricExporter, PeriodicExpo
 from opentelemetry.exporter.otlp.proto.grpc.metric_exporter import OTLPMetricExporter
 
 fastapi_service_name = "fastapi-app"
-telemetry_endpoint = "http://127.0.0.1:4317"
+telemetry_endpoint = "127.0.0.1:4317"
 
 
 def init_trace(service_name):
