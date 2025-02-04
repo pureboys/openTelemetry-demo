@@ -45,7 +45,7 @@ def init_log(service_name):
 
 def init_metric(service_name):
     if metrics.get_meter_provider() is None or not isinstance(metrics.get_meter_provider(), MeterProvider):
-        otlp_exporter = OTLPMetricExporter(endpoint=telemetry_endpoint)
+        otlp_exporter = OTLPMetricExporter(endpoint=telemetry_endpoint, insecure=True)
         metric_reader = PeriodicExportingMetricReader(otlp_exporter, export_interval_millis=1000)
         metric_provider = MeterProvider(metric_readers=[metric_reader],
                                         resource=Resource.create({ResourceAttributes.SERVICE_NAME: service_name}, ))
